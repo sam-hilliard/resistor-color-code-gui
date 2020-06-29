@@ -1,6 +1,7 @@
 
 import tkinter as tk
 from tkinter import ttk
+import tkinter.font as font
 from resistor import Resistor
 
 
@@ -9,13 +10,21 @@ class App:
     def __init__(self):
         self.window = tk.Tk()
         self.fr_content = tk.Frame(self.window)
+
         self.menus = []
         self.menu_vars = []
-        self.lbl_result = ttk.Label(self.fr_content)
+        self.fr_menus = tk.Frame(self.fr_content)
+
+        self.fr_rbuttons = tk.Frame(self.fr_content)
+        self.rb_general = ttk.Radiobutton(self.fr_rbuttons)
+        self.rb_precision = ttk.Radiobutton(self.fr_rbuttons)
         self.option = tk.IntVar()
+
+        self.lbl_result = ttk.Label(self.fr_content)
 
     # displays the gui of the application
     def run(self):
+
         # setting window size and location
         winx = int(self.window.winfo_screenwidth() / 2 - 250)
         winy = int(self.window.winfo_screenheight() / 2 - 150)
@@ -23,22 +32,26 @@ class App:
         self.window.title('Resistor color code converter')
 
         # configuring main content
+        self.fr_content.configure(bg='#7f8fa6')
         self.fr_content.pack(fill='both', expand=True)
+
+        # add menus
+        self.fr_menus.grid(row=0, column=0, sticky='ew', padx=10, pady=25)
         self.configMenus()
 
+        # radio buttons
+        self.fr_rbuttons.grid(row=1, column=0, sticky='ew', padx=60, pady=(0, 50))
         # radio button to select general purpose resistor calculation
-        rb_general = ttk.Radiobutton(
-            self.fr_content, text='General Purpose', variable=self.option, value=0, command=self.configMenus)
-        rb_general.grid(row=1, column=0)
-
+        self.rb_general.configure(text='General Purpose', variable=self.option, value=0, command=self.configMenus)
+        self.rb_general.grid(row=0, column=0)
         # radio button to select precision resistor calculation
-        rb_precision = ttk.Radiobutton(
-            self.fr_content, text='Precision', variable=self.option, value=1, command=self.configMenus)
-        rb_precision.grid(row=1, column=1)
+        self.rb_precision.configure(text='Precision', variable=self.option, value=1, command=self.configMenus)
+        self.rb_precision.grid(row=0, column=1)
 
         # displays the numerical value of the resistor based on user input
-        self.lbl_result.configure(text='Resistor value: None')
-        self.lbl_result.grid(row=2, column=0)
+        lbl_font = font.Font(family='Helvetica', size=20)
+        self.lbl_result.configure(text='Resistor value: None', font=lbl_font)
+        self.lbl_result.grid(row=2, column=0, sticky='ew', padx=60)
 
         tk.mainloop()
 
@@ -87,8 +100,8 @@ class App:
                 continue
 
             menu_var = tk.StringVar(self.fr_content)
-            menu = ttk.OptionMenu(self.fr_content, menu_var, *options)
-            menu.grid(row=0, column=i, padx=5)
+            menu = ttk.OptionMenu(self.fr_menus, menu_var, *options)
+            menu.grid(row=0, column=i, padx=(0, 10))
             self.menus.append(menu)
             self.menu_vars.append(menu_var)
             menu_var.trace_add('write', self.calculate)
@@ -104,7 +117,7 @@ class App:
                 bands.append(menu_var.get())
             else:
                 break
-        
+
         # determines if input given follows resistor color code
         if len(bands) == 1:
             if bands[0] == 'black':
@@ -114,12 +127,42 @@ class App:
                 isValid = True
 
         if isValid:
-            resistor =  Resistor(bands, True) if len(self.menus) > 4 else Resistor(bands, False)
+            resistor = Resistor(bands, True) if len(
+                self.menus) > 4 else Resistor(bands, False)
 
-            value = resistor.getDigits() * (10 ** resistor.getMultiplier())
-            result = str(value) + '\u03A9 ' + resistor.getTolerance() + resistor.getTempCo()
+            value = self.formatResult(
+                resistor.getDigits(), resistor.getMultiplier())
+            result = str(value) + '\u03A9 ' + \
+                resistor.getTolerance() + resistor.getTempCo()
 
             self.lbl_result.configure(text=f'Resistor value: {result}')
 
         else:
-            self.lbl_result.configure(text='Resitor value: Invalid')
+            self.lbl_result.configure(text='Resistor value: Invalid', font=('Helvetica', 20))
+
+    def formatResult(self, digits, mult):
+        formatted = ''
+        prefix = ''
+        exp = mult
+
+        # kilo
+        if mult >= 3 and mult < 6:
+            exp -= 3
+            prefix = 'k'
+        # mega
+        if mult >= 6 and mult < 9:
+            exp -= 6
+            prefix = 'M'
+        # giga
+        if mult >= 9:
+            exp = 0
+            prefix = 'G'
+
+        digits = round(float(digits) * (10 ** exp), 2)
+        digits = str(digits)
+        if digits[-2:] == '.0':
+            formatted = digits.replace('.0', '') + prefix
+        else:
+            formatted = digits + prefix
+
+        return formatted
