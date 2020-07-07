@@ -16,11 +16,13 @@ class App:
         self.fr_menus = tk.Frame(self.fr_content)
 
         self.fr_rbuttons = tk.Frame(self.fr_content)
-        self.rb_general = ttk.Radiobutton(self.fr_rbuttons)
-        self.rb_precision = ttk.Radiobutton(self.fr_rbuttons)
+        self.rb_general = tk.Radiobutton(self.fr_rbuttons)
+        self.rb_precision = tk.Radiobutton(self.fr_rbuttons)
         self.option = tk.IntVar()
 
-        self.lbl_result = ttk.Label(self.fr_content)
+        self.fr_result = tk.Frame(self.fr_content)
+        self.lbl_result = tk.Label(self.fr_result)
+        self.lbl_value = tk.Label(self.fr_result)
 
     # displays the gui of the application
     def run(self):
@@ -32,26 +34,38 @@ class App:
         self.window.title('Resistor color code converter')
 
         # configuring main content
-        self.fr_content.configure(bg='#7f8fa6')
+        self.fr_content.configure(bg='#273c75')
         self.fr_content.pack(fill='both', expand=True)
 
         # add menus
-        self.fr_menus.grid(row=0, column=0, sticky='ew', padx=10, pady=25)
+        self.fr_menus.configure(bg='#273c75')
+        self.fr_menus.grid(row=0, column=0, sticky='nsew', padx=10, pady=25)
         self.configMenus()
 
         # radio buttons
-        self.fr_rbuttons.grid(row=1, column=0, sticky='ew', padx=60, pady=(0, 50))
+        self.fr_rbuttons.configure(bg='#273c75')
+        self.fr_rbuttons.grid(
+            row=1, column=0, sticky='nsew', padx=60, pady=(0, 30))
         # radio button to select general purpose resistor calculation
-        self.rb_general.configure(text='General Purpose', variable=self.option, value=0, command=self.configMenus)
+        self.rb_general.configure(text='General Purpose', variable=self.option, value=0,
+                                  command=self.configMenus, bg='#273c75', fg='#f5f6fa', font=font.Font(family='Calibri', size=16))
         self.rb_general.grid(row=0, column=0)
         # radio button to select precision resistor calculation
-        self.rb_precision.configure(text='Precision', variable=self.option, value=1, command=self.configMenus)
+        self.rb_precision.configure(text='Precision', variable=self.option, value=1, command=self.configMenus,
+                                    bg='#273c75', fg='#f5f6fa', font=font.Font(family='Calibri', size=16))
         self.rb_precision.grid(row=0, column=1)
 
         # displays the numerical value of the resistor based on user input
-        lbl_font = font.Font(family='Helvetica', size=20)
-        self.lbl_result.configure(text='Resistor value: None', font=lbl_font)
-        self.lbl_result.grid(row=2, column=0, sticky='ew', padx=60)
+        self.fr_result.configure(bg='#273c75')
+        self.fr_result.grid(row=2, column=0, sticky='nsew', padx=(60, 0))
+
+        self.lbl_result.configure(text='Resistor value: ', font=font.Font(
+            family='Calibri', size=25), bg='#273c75', fg='#f5f6fa')
+        self.lbl_result.grid(row=0, column=0, sticky='nsew')
+
+        self.lbl_value.configure(text='None', font=font.Font(
+            family='Calibri', size=25, weight='bold'), bg='#273c75', fg='#32ff7e')
+        self.lbl_value.grid(row=0, column=1, sticky='nsew', padx=10)
 
         tk.mainloop()
 
@@ -65,7 +79,7 @@ class App:
             self.menus.clear()
 
         # makes sure label doesn't display previous value when switching options
-        self.lbl_result.configure(text='Resistor value: None')
+        self.lbl_value.configure(text='None')
 
         # all possible colors to select from
         default_options = ['black', 'brown', 'red', 'orange', 'yellow',
@@ -135,10 +149,10 @@ class App:
             result = str(value) + '\u03A9 ' + \
                 resistor.getTolerance() + resistor.getTempCo()
 
-            self.lbl_result.configure(text=f'Resistor value: {result}')
+            self.lbl_value.configure(text=result)
 
         else:
-            self.lbl_result.configure(text='Resistor value: Invalid', font=('Helvetica', 20))
+            self.lbl_value.configure(text='Invalid', font=('Helvetica', 20))
 
     def formatResult(self, digits, mult):
         formatted = ''
